@@ -1,7 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
 import { useRef, useState } from "react";
-import emailjs from "@emailjs/browser";
 
 const ContactPage = () => {
   const [success, setSuccess] = useState(false);
@@ -23,23 +22,28 @@ const ContactPage = () => {
       return;
     }
 
-    emailjs
-      .sendForm(
-        process.env.NEXT_PUBLIC_SERVICE_ID,
-        process.env.NEXT_PUBLIC_TEMPLATE_ID,
-        form.current,
-        process.env.NEXT_PUBLIC_PUBLIC_KEY
-      )
-      .then(
-        () => {
+    fetch('/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_email: email,
+        user_message: message,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
           setSuccess(true);
           form.current.reset();
-        },
-        (err) => {
-          console.error('Email sending error:', err); // Log error for debugging
+        } else {
           setError(true);
         }
-      );
+      })
+      .catch(() => {
+        setError(true);
+      });
   };
 
   return (
